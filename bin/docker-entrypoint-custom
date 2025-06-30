@@ -1,0 +1,10 @@
+#!/bin/bash -e
+
+# Remove a potentially pre-existing server.pid for Rails.
+rm -f /app/tmp/pids/server.pid
+
+if [[ "$1" == "rails" ]]; then
+    exec bundle exec "$@"
+else
+    exec "$@"
+fi

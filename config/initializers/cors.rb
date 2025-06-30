@@ -9,7 +9,7 @@
 #   allow do
 #     origins "example.com"
 #
-#     resource "*",
+#     resource "*",P
 #       headers: :any,
 #       methods: [:get, :post, :put, :patch, :delete, :options, :head]
 #   end

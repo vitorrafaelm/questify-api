@@ -1,0 +1,54 @@
+---
+version: "3.8"
+
+services:
+  questify-postgresql:
+    image: postgres:16.1-alpine
+    container_name: questify-db
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_DB=questify_db_development
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgresql:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - applocal
+
+  questify-api:
+    container_name: questify-api
+    image: questify-api
+    stdin_open: true
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bash -c "bundle exec rake db:prepare && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    ports:
+      - "51704:3000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - RAILS_ENV=development
+      - DB_HOST=questify-db
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - applocal
+
+volumes:
+  postgresql:
+    name: questify-postgresql
+
+networks:
+  applocal:
+    name: questify-local
+    external: true

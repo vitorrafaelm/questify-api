@@ -1,0 +1,93 @@
+# syntax = docker/dockerfile:1
+
+# Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
+ARG RUBY_VERSION=3.2.2
+
+###
+### IMAGE: Base Image
+###
+FROM ruby:$RUBY_VERSION-slim AS base
+
+# Update base image
+RUN apt-get update -qq \
+    && apt-get upgrade -y \
+    && apt-get clean
+
+# Update RubyGems
+RUN gem update --system
+
+###
+### IMAGE: Install Jemalloc
+###
+FROM base AS jemalloc
+
+# Set default shell call
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+WORKDIR /tmp
+
+RUN apt-get install --no-install-recommends -y wget build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && wget -q -O - https://github.com/jemalloc/jemalloc/releases/download/5.3.0/jemalloc-5.3.0.tar.bz2 | tar -xj \
+    && cd jemalloc-5.3.0 \
+    && ./configure \
+    && make \
+    && make install
+
+###
+### IMAGE: Throw-away build stage to reduce size of final image
+###
+FROM base AS build
+
+# Set container arguments
+ARG APP_PATH=/app
+ARG APP_USER=developer
+
+# Set container envs
+ENV BUNDLE_APP_CONFIG=/home/developer/.bundle
+ENV BUNDLER_VERSION=2.5.6
+ENV GEM_HOME=/home/developer/.bundle
+ENV LANG=C.UTF-8
+ENV RUBY_VERSION=${RUBY_VERSION}
+ENV RUBY_YJIT_ENABLE=1
+
+# Set default shell call
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# Set container arguments
+ARG APP_PATH=/app
+
+# Install packages needed to build gems
+RUN apt-get install --no-install-recommends -y build-essential libpq-dev libvips pkg-config wget postgresql-client gpg gpg-agent dirmngr sudo git curl iproute2 iputils-ping net-tools openssh-client gnupg2 nano \
+    && gpg -k \
+    && apt-get update -qq \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy jemalloc Set LD_PRELOAD to use it instead malloc
+COPY --from=jemalloc /usr/local/lib/libjemalloc.so.2 /usr/local/lib/
+ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so.2
+
+# Run and own only the runtime files as a non-root user for compatibility of Linux UserID with host
+RUN useradd $APP_USER --create-home --shell /bin/bash \
+    && echo 'export PATH=/home/developer/.bundle/bin/:$PATH' >> /home/developer/.bashrc \
+    && echo "$APP_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$APP_USER
+
+# Rails app lives here
+WORKDIR $APP_PATH
+
+# Give the right permission to $APP_PATH
+RUN chown $APP_USER:$APP_USER $APP_PATH
+
+# Set user
+USER $APP_USER
+
+# Install application gems
+COPY --chown=$APP_USER:$APP_USER Gemfile* $APP_PATH/
+RUN bundle install
+
+# Set the entrypoint to the script
+ENTRYPOINT ["/app/bin/docker-entrypoint-custom"]
