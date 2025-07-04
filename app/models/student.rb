@@ -16,6 +16,7 @@ class Student < ApplicationRecord
   # Callbacks
   before_create :generate_identifier
   before_validation :normalize_username
+  after_create :assign_default_permissions
 
   # Scopes
   scope :active, -> { kept }
@@ -23,7 +24,7 @@ class Student < ApplicationRecord
   scope :by_grade, ->(grade) { where(grade: grade) }
   scope :by_username, ->(username) { where("username ILIKE ?", "%#{username}%") }
 
-  has_one :user_authorizations, as: :user_authorizable
+  has_one :user_authorization, as: :user_authorizable, dependent: :destroy
 
   private
 
@@ -33,5 +34,21 @@ class Student < ApplicationRecord
 
   def normalize_username
     self.username = username&.downcase&.strip
+  end
+
+  def assign_default_permissions
+    associated_auth = self.user_authorization || UserAuthorization.find_by(user_authorizable: self)  
+    return unless associated_auth
+
+    student_permission_identifiers = [
+      'list-assessments',
+      'list-public-questions'
+    ]
+
+    permissions_to_grant = PermissionObject.kept.where(identifier: student_permission_identifiers)
+
+    permissions_to_grant.each do |permission_obj|
+      UserPermission.grant_permission(associated_auth, permission_obj)
+    end
   end
 end

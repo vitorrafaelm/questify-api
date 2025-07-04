@@ -5,12 +5,13 @@ class PermissionObject < ApplicationRecord
   OBJECT_TYPES = %w[
     questionnaire
     question
+    theme
     answer
     user_response
     analytics
     institution
     course
-    class
+    class_entity
   ].freeze
 
   # Validations
