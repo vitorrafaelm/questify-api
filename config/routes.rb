@@ -7,6 +7,13 @@ Rails.application.routes.draw do
   # API routes
   namespace :api do
     namespace :v1 do
+      get 'questions/index'
+      get 'questions/create'
+      get 'themes/index'
+      get 'themes/create'
+      #routes
+      resources :themes, only: [:index, :create]
+      resources :questions, only: [:index, :create]
       # User Authorization routes
       resources :user_authorizations, only: [:create] do
         collection do
