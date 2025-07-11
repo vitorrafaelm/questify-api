@@ -13,8 +13,20 @@ class Api::V1::BaseController < ActionController::API
     end
 
     decoded_payload = JsonWebToken.decode(token)
-    # Encontra o UserAuthorization pelo ID que está dentro do token
-    @current_user = UserAuthorization.find(decoded_payload[:id])
+    # --- LINHAS DE DEPURAÇÃO ---
+    puts "--- DECODED TOKEN PAYLOAD ---"
+    puts decoded_payload.inspect
+    # --- FIM DAS LINHAS DE DEPURAÇÃO ---
+    
+    user_id = decoded_payload[:user_id]
+    
+    # --- LINHAS DE DEPURAÇÃO ---
+    puts "--- EXTRACTED USER ID ---"
+    puts user_id.inspect
+    # --- FIM DAS LINHAS DE DEPURAÇÃO ---
+    
+    @current_user = UserAuthorization.find(user_id)
+
   rescue JWT::DecodeError, ActiveRecord::RecordNotFound
     render json: { error: 'Token inválido ou expirado' }, status: :unauthorized
   end

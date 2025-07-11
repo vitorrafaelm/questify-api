@@ -17,6 +17,9 @@ class UserPermission < ApplicationRecord
   validate :user_authorization_must_be_active
   validate :permission_object_must_be_active
 
+  #scope
+  scope :active, -> { where(is_active: true) }
+
   # Class methods
   def self.grant_permission(user_authorization, permission_object)
     permission = find_or_initialize_by(

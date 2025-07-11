@@ -14,7 +14,7 @@ class UserAuthorization < ApplicationRecord
 
   devise :database_authenticatable, :registerable, :recoverable
   belongs_to :user_authorizable, polymorphic: true
-  has_many :user_permissions
+  has_many :user_permissions, dependent: :destroy
   has_many :permission_objects, through: :user_permissions
 
   # State machine definition
@@ -51,33 +51,38 @@ class UserAuthorization < ApplicationRecord
   scope :for_students, -> { where(user_authorizable_type: 'Student') }
 
   
-    def assign_default_permissions
-      # Verifica que tipo de usuário está sendo criado (Educator ou Student)
-      if user_authorizable.is_a?(Educator)
-        permission_identifiers = [
-          'create-questions',
-          'create-themes',
-          'create-assessments',
-          'create-classes',
-          'manage-classes',
-          'view-private-questions'
-        ]
-      elsif user_authorizable.is_a?(Student)
-        permission_identifiers = [
-          'list-assessments',
-          'list-public-questions'
-        ]
-      else
-        return # Não faz nada se não for um tipo conhecido
-      end
-
-      permissions_to_grant = PermissionObject.kept.where(identifier: permission_identifiers)
-
-      permissions_to_grant.each do |permission_obj|
-        UserPermission.grant_permission(self, permission_obj)
-      end
+  def assign_default_permissions
+    # Verifica que tipo de usuário está sendo criado (Educator ou Student)
+    if user_authorizable.is_a?(Educator)
+      permission_identifiers = [
+        'create-questions',
+        'create-themes',
+        'create-assessments',
+        'create-classes',
+        'manage-classes',
+        'view-private-questions'
+      ]
+    elsif user_authorizable.is_a?(Student)
+      permission_identifiers = [
+        'list-assessments',
+        'list-public-questions'
+      ]
+    else
+      return # Não faz nada se não for um tipo conhecido
     end
 
+    permissions_to_grant = PermissionObject.kept.where(identifier: permission_identifiers)
+
+    permissions_to_grant.each do |permission_obj|
+      UserPermission.grant_permission(self, permission_obj)
+    end
+  end
+  
+  def has_permission?(identifier)
+    # Procura nas permissões do utilizador se existe alguma que esteja ativa
+    # e cujo objeto de permissão tenha o identificador.
+    user_permissions.active.joins(:permission_object).where(permission_objects: { identifier: identifier }).exists?
+  end
   # Class methods
   def self.authenticate(email, password)
     user = find_by(email: email.downcase.strip)

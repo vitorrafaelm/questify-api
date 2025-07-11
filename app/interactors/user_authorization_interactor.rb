@@ -9,11 +9,16 @@ class UserAuthorizationInteractor
     raise ExceptionHandler::UserNotActiveError.new unless user_authorization.state == "active"
 
     if user_authorization.valid_password?(password)
-      user_serialized = Questify::SessionSerializer.new(user_authorization).sanitized_hash
-      jwt_token = JWT.encode(user_serialized, Rails.application.secret_key_base, 'HS256')
+      # Prepara a resposta para o utilizador
+      response_hash = Questify::SessionSerializer.new(user_authorization).sanitized_hash
+      
+      # Cria um payload simples para o token, apenas com o ID
+      payload = { user_id: user_authorization.id }
+      jwt_token = JsonWebToken.encode(payload)
 
-      user_serialized[:access_token] = jwt_token
-      user_serialized
+      # Adiciona o token à resposta final
+      response_hash[:access_token] = jwt_token
+      response_hash
     else
       raise ExceptionHandler::InvalidCredentialsError.new("Invalid password")
     end

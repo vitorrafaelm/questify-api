@@ -14,6 +14,7 @@ module QuestifyApi
     config.load_defaults 7.0
 
     config.logger = Logger.new(STDOUT) if Rails.env.development?
+    config.autoload_paths << Rails.root.join("lib")
 
     # Configuration for the application, engines, and railties goes here.
     #
