@@ -14,7 +14,7 @@ class Api::V1::UserAuthorizationsController < ApplicationController
   def create
     user_create_params = user_authorization_params_create.to_h.with_indifferent_access
 
-    user = @interactor.create_user_authorization!(user_permited_params)
+    user = @interactor.create_user_authorization!(user_create_params)
     render json: user.to_json, status: :created
   end
 

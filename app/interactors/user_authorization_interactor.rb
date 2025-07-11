@@ -24,55 +24,45 @@ class UserAuthorizationInteractor
     end
   end
 
-  def create_user_authorization(user_create_params)!
-    @user = user_permited_params
+  def create_user_authorization!(user_create_params)
+    # Usar um nome de variável de instância diferente para evitar confusão.
+    @user_params = user_create_params
+    
+    user_record = nil
 
     ActiveRecord::Base.transaction do
-      user = create_user_by_type
+      user_record = build_user_by_type
+      user_record.build_user_authorization(
+        email: @user_params[:email],
+        password: @user_params[:password],
+        state: :active
+      )
 
-      save_user_authorization(user)
+      user_record.save!
     end
 
-    user
+    user_record
   end
 
   private
 
-  def create_user_by_type
-    user_created = nil
-
-    if @user[:user_type].to_sym == :student
-      user_created = Student.create!(
-        name: @user[:name],
-        institution: @user[:institution],
-        username: @user.dig(:student, :username),
-        document_type: @user[:document_type],
-        document_number: @user[:document_number],
-        grande: @user.dig(:student, :grade)
+  def build_user_by_type
+    if @user_params[:user_type].to_sym == :student
+      Student.new(
+        name: @user_params[:name],
+        institution: @user_params[:institution],
+        username: @user_params.dig(:student, :username),
+        document_type: @user_params[:document_type],
+        document_number: @user_params[:document_number],
+        grade: @user_params.dig(:student, :grade)
       )
-      return user_created
-    end
-
-    user_created = Educator.create!(
-      name: @user[:name],
-      email: @user[:email],
-      document_type: @user[:document_type],
-      document_number: @user[:document_number],
-    )
-  end
-
-  def save_user_authorization(user)
-    user_authorization = UserAuthorization.create!(
-      email: @user[:email],
-      user_authorizable_type: user.class.name,
-      user_authorizable_id: user.id,
-      password: @user[:password],
-    )
-
-    if user_authorization.save
-      user_authorization
     else
-      raise ActiveRecord::Rollback, "Failed to save UserAuthorization"
+      Educator.new(
+        name: @user_params[:name],
+        institution: @user_params[:institution],
+        document_type: @user_params[:document_type],
+        document_number: @user_params[:document_number]
+      )
     end
   end
 
