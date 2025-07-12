@@ -18,6 +18,7 @@ class Educator < ActiveRecord::Base
   #FK
   has_one :user_authorization, as: :user_authorizable, dependent: :destroy
   has_many :class_groups
+  has_many :assessments, dependent: :destroy
   private
 
   def generate_identifier
