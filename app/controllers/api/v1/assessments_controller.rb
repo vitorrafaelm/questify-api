@@ -22,9 +22,9 @@ class Api::V1::AssessmentsController < Api::V1::BaseController
   # GET /api/v1/assessments/:id/with_questions
   # Mostra os detalhes de uma avaliação, COM as questões incluídas.
   def with_questions
-    options = { include: [:questions] }
-    render json: Questify::AssessmentSerializer.new(@assessment, options).serializable_hash, status: :ok
-  end
+  options = { include: [:'questions.question_alternatives'] }
+  render json: Questify::AssessmentSerializer.new(@assessment, options).serializable_hash, status: :ok
+end
 
   # POST /api/v1/assessments/:id/add_question
   def add_question
@@ -62,8 +62,6 @@ class Api::V1::AssessmentsController < Api::V1::BaseController
 
   # ATUALIZADO COM DEPURAÇÃO E TRATAMENTO DE ERRO
   def set_assessment
-    educator = current_user.user_authorizable
-
     @assessment = current_user.user_authorizable.assessments.includes(questions: :question_alternatives).find(params[:id])
 
     # Se a avaliação não for encontrada, retorna um erro 404

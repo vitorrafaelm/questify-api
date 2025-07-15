@@ -26,6 +26,7 @@ class Student < ApplicationRecord
   has_one :user_authorization, as: :user_authorizable, dependent: :destroy
   has_many :student_in_class_groups, dependent: :destroy
   has_many :class_groups, through: :student_in_class_groups
+  has_many :assessment_by_students, dependent: :destroy
 
   private
 

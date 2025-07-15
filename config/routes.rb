@@ -7,6 +7,10 @@ Rails.application.routes.draw do
   # API routes
   namespace :api do
     namespace :v1 do
+      get 'submissions/show'
+      get 'submissions/grade'
+      get 'assessment_by_students/index'
+      get 'assessment_by_students/submit'
       get 'assessments/create'
       get 'assessments/add_question'
       get 'assessments/assign_to_class_group'
@@ -31,6 +35,16 @@ Rails.application.routes.draw do
           post :add_question
           post :assign_to_class_group
           get  :with_questions
+        end
+      end
+      resources :assessment_by_students, only: [:index] do
+        member do
+          post :submit
+        end
+      end
+      resources :submissions, only: [:show] do
+        member do
+          patch :grade
         end
       end
       # User Authorization routes
