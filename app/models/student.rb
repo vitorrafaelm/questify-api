@@ -24,6 +24,8 @@ class Student < ApplicationRecord
   scope :by_username, ->(username) { where("username ILIKE ?", "%#{username}%") }
 
   has_one :user_authorization, as: :user_authorizable, dependent: :destroy
+  has_many :student_in_class_groups, dependent: :destroy
+  has_many :class_groups, through: :student_in_class_groups
 
   private
 

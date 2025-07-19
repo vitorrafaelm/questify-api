@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  assessment: one
+  class_group: one
+  due_date: 2025-07-09 17:29:25
+
+two:
+  assessment: two
+  class_group: two
+  due_date: 2025-07-09 17:29:25
