@@ -18,7 +18,6 @@ class Questify::SessionSerializer
           objects.map { |obj|
             {
               identifier: obj.identifier,
-              role_type: obj&.role_type,
               name: obj.name
             }.compact
           }

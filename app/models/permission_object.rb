@@ -3,15 +3,7 @@ class PermissionObject < ApplicationRecord
 
   # Constants for object types
   OBJECT_TYPES = %w[
-    questionnaire
-    question
-    theme
-    answer
-    user_response
-    analytics
-    institution
-    course
-    class_entity
+    tests-and-questions
   ].freeze
 
   # Validations

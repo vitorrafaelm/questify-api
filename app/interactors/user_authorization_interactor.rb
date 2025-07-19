@@ -19,16 +19,15 @@ class UserAuthorizationInteractor
     end
   end
 
-  def create_user_authorization(user_create_params)!
-    @user = user_permited_params
+  def create_user_authorization!(user_create_params)!
+    @user = user_create_params
 
     ActiveRecord::Base.transaction do
       user = create_user_by_type
-
-      save_user_authorization(user)
+      @user = save_user_authorization(user)
     end
 
-    user
+    @user
   end
 
   private
@@ -50,7 +49,7 @@ class UserAuthorizationInteractor
 
     user_created = Educator.create!(
       name: @user[:name],
-      email: @user[:email],
+      institution: @user[:institution],
       document_type: @user[:document_type],
       document_number: @user[:document_number],
     )
@@ -65,6 +64,7 @@ class UserAuthorizationInteractor
     )
 
     if user_authorization.save
+      user_authorization.activate!
       user_authorization
     else
       raise ActiveRecord::Rollback, "Failed to save UserAuthorization"

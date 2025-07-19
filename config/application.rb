@@ -15,6 +15,9 @@ module QuestifyApi
 
     config.logger = Logger.new(STDOUT) if Rails.env.development?
 
+    config.hosts << "http://localhost:3000"
+    config.hosts << "http://127.0.0.1:3000"
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
