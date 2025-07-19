@@ -23,7 +23,7 @@ class Student < ApplicationRecord
   scope :by_grade, ->(grade) { where(grade: grade) }
   scope :by_username, ->(username) { where("username ILIKE ?", "%#{username}%") }
 
-  has_one :user_authorizations, as: :user_authorizable
+  has_one :user_authorization, as: :user_authorizable, dependent: :destroy
 
   private
 
@@ -34,4 +34,6 @@ class Student < ApplicationRecord
   def normalize_username
     self.username = username&.downcase&.strip
   end
+
+ 
 end

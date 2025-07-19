@@ -8,6 +8,8 @@ class UserAuthorization < ApplicationRecord
   validates :identifier, uniqueness: true, allow_nil: true
   validate :password_complexity
 
+  # Callbacks
+  after_create :assign_default_permissions
   before_create :generate_identifier
 
   devise :database_authenticatable, :registerable, :recoverable
@@ -48,6 +50,34 @@ class UserAuthorization < ApplicationRecord
   scope :for_educators, -> { where(user_authorizable_type: 'Educator') }
   scope :for_students, -> { where(user_authorizable_type: 'Student') }
 
+  
+    def assign_default_permissions
+      # Verifica que tipo de usuário está sendo criado (Educator ou Student)
+      if user_authorizable.is_a?(Educator)
+        permission_identifiers = [
+          'create-questions',
+          'create-themes',
+          'create-assessments',
+          'create-classes',
+          'manage-classes',
+          'view-private-questions'
+        ]
+      elsif user_authorizable.is_a?(Student)
+        permission_identifiers = [
+          'list-assessments',
+          'list-public-questions'
+        ]
+      else
+        return # Não faz nada se não for um tipo conhecido
+      end
+
+      permissions_to_grant = PermissionObject.kept.where(identifier: permission_identifiers)
+
+      permissions_to_grant.each do |permission_obj|
+        UserPermission.grant_permission(self, permission_obj)
+      end
+    end
+
   # Class methods
   def self.authenticate(email, password)
     user = find_by(email: email.downcase.strip)
@@ -55,6 +85,7 @@ class UserAuthorization < ApplicationRecord
     return nil unless user.can_login?
     user
   end
+
 
   def password_complexity
     # Testing capital letters          (?=.*?[A-Z])

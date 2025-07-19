@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_06_22_185344) do
+ActiveRecord::Schema[7.0].define(version: 2025_07_04_072643) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -41,7 +41,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_06_22_185344) do
     t.string "institution"
     t.string "document_type"
     t.string "document_number"
-    t.string "grande"
+    t.string "grade"
     t.datetime "discarded_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

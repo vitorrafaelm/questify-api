@@ -15,9 +15,13 @@ class Educator < ActiveRecord::Base
   scope :active, -> { kept }
   scope :by_institution, ->(institution) { where(institution: institution) }
 
+  #FK
+  has_one :user_authorization, as: :user_authorizable, dependent: :destroy
   private
 
   def generate_identifier
     self.identifier = "EDU-#{SecureRandom.uuid}"
   end
+
+
 end
