@@ -9,11 +9,16 @@ class UserAuthorizationInteractor
     raise ExceptionHandler::UserNotActiveError.new unless user_authorization.state == "active"
 
     if user_authorization.valid_password?(password)
-      user_serialized = Questify::SessionSerializer.new(user_authorization).sanitized_hash
-      jwt_token = JWT.encode(user_serialized, Rails.application.secret_key_base, 'HS256')
+      # Prepara a resposta para o utilizador
+      response_hash = Questify::SessionSerializer.new(user_authorization).sanitized_hash
 
-      user_serialized[:access_token] = jwt_token
-      user_serialized
+      # Cria um payload simples para o token, apenas com o ID
+      payload = { user_id: user_authorization.id }
+      jwt_token = JsonWebToken.encode(payload)
+
+      # Adiciona o token à resposta final
+      response_hash[:access_token] = jwt_token
+      response_hash
     else
       raise ExceptionHandler::InvalidCredentialsError.new("Invalid password")
     end
@@ -32,17 +37,15 @@ class UserAuthorizationInteractor
 
   private
 
-  def create_user_by_type
-    user_created = nil
-
-    if @user[:user_type].to_sym == :student
-      user_created = Student.create!(
-        name: @user[:name],
-        institution: @user[:institution],
-        username: @user.dig(:student, :username),
-        document_type: @user[:document_type],
-        document_number: @user[:document_number],
-        grande: @user.dig(:student, :grade)
+  def build_user_by_type
+    if @user_params[:user_type].to_sym == :student
+      Student.new(
+        name: @user_params[:name],
+        institution: @user_params[:institution],
+        username: @user_params.dig(:student, :username),
+        document_type: @user_params[:document_type],
+        document_number: @user_params[:document_number],
+        grade: @user_params.dig(:student, :grade)
       )
       return user_created
     end
@@ -67,7 +70,12 @@ class UserAuthorizationInteractor
       user_authorization.activate!
       user_authorization
     else
-      raise ActiveRecord::Rollback, "Failed to save UserAuthorization"
+      Educator.new(
+        name: @user_params[:name],
+        institution: @user_params[:institution],
+        document_type: @user_params[:document_type],
+        document_number: @user_params[:document_number]
+      )
     end
   end
 

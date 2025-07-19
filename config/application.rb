@@ -14,6 +14,11 @@ module QuestifyApi
     config.load_defaults 7.0
 
     config.logger = Logger.new(STDOUT) if Rails.env.development?
+    config.autoload_paths << Rails.root.join("exceptions")
+    config.autoload_paths << Rails.root.join("lib")
+
+    config.hosts << "http://localhost:3000"
+    config.hosts << "http://127.0.0.1:3000"
 
     config.hosts << "http://localhost:3000"
     config.hosts << "http://127.0.0.1:3000"

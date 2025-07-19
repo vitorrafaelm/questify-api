@@ -7,6 +7,46 @@ Rails.application.routes.draw do
   # API routes
   namespace :api do
     namespace :v1 do
+      get 'submissions/show'
+      get 'submissions/grade'
+      get 'assessment_by_students/index'
+      get 'assessment_by_students/submit'
+      get 'assessments/create'
+      get 'assessments/add_question'
+      get 'assessments/assign_to_class_group'
+      get 'class_groups/index'
+      get 'class_groups/create'
+      get 'class_groups/add_student'
+      get 'questions/index'
+      get 'questions/create'
+      get 'themes/index'
+      get 'themes/create'
+      #routes
+      resources :themes, only: [:index, :create]
+      resources :questions, only: [:index, :create]
+      resources :class_groups, only: [:index, :create, :show] do
+        member do
+          post :add_student
+          get :with_students
+        end
+      end
+      resources :assessments, only: [:create, :show] do
+        member do
+          post :add_question
+          post :assign_to_class_group
+          get  :with_questions
+        end
+      end
+      resources :assessment_by_students, only: [:index] do
+        member do
+          post :submit
+        end
+      end
+      resources :submissions, only: [:show] do
+        member do
+          patch :grade
+        end
+      end
       # User Authorization routes
       resources :user_authorizations, only: [:create] do
         collection do
