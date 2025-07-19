@@ -1,8 +1,7 @@
 class Api::V1::UserAuthorizationsController < ApplicationController
-
   before_action :set_interator
 
-  # Post /api/v1/user_authorization/login
+  # Post /api/v1/user_authorizations/login
   def login
     user_login_params = user_authorization_login_params.to_h.with_indifferent_access
     user  = @interactor.login(user_login_params)
@@ -10,11 +9,11 @@ class Api::V1::UserAuthorizationsController < ApplicationController
     render json: user, status: :created
   end
 
-  # Post /api/v1/user_authorization
+  # Post /api/v1/user_authorizations
   def create
     user_create_params = user_authorization_params_create.to_h.with_indifferent_access
 
-    user = @interactor.create_user_authorization!(user_permited_params)
+    user = @interactor.create_user_authorization!(user_create_params)
     render json: user.to_json, status: :created
   end
 
