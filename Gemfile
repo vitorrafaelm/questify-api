@@ -24,6 +24,7 @@ gem "jsonapi-serializer"
 
 gem 'discard', '~> 1.4'
 gem 'jwt'
+gem 'rack-cors'
 
 # Use Redis adapter to run Action Cable in production
 # gem "redis", "~> 4.0"
@@ -54,4 +55,7 @@ end
 group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
+  gem 'pry'
+  gem 'pry-rails'
+  gem 'pry-byebug'
 end

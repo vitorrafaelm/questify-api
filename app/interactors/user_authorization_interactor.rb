@@ -11,7 +11,7 @@ class UserAuthorizationInteractor
     if user_authorization.valid_password?(password)
       # Prepara a resposta para o utilizador
       response_hash = Questify::SessionSerializer.new(user_authorization).sanitized_hash
-      
+
       # Cria um payload simples para o token, apenas com o ID
       payload = { user_id: user_authorization.id }
       jwt_token = JsonWebToken.encode(payload)
@@ -24,24 +24,15 @@ class UserAuthorizationInteractor
     end
   end
 
-  def create_user_authorization!(user_create_params)
-    # Usar um nome de variável de instância diferente para evitar confusão.
-    @user_params = user_create_params
-    
-    user_record = nil
+  def create_user_authorization!(user_create_params)!
+    @user = user_create_params
 
     ActiveRecord::Base.transaction do
-      user_record = build_user_by_type
-      user_record.build_user_authorization(
-        email: @user_params[:email],
-        password: @user_params[:password],
-        state: :active
-      )
-
-      user_record.save!
+      user = create_user_by_type
+      @user = save_user_authorization(user)
     end
 
-    user_record
+    @user
   end
 
   private
@@ -56,6 +47,28 @@ class UserAuthorizationInteractor
         document_number: @user_params[:document_number],
         grade: @user_params.dig(:student, :grade)
       )
+      return user_created
+    end
+
+    user_created = Educator.create!(
+      name: @user[:name],
+      institution: @user[:institution],
+      document_type: @user[:document_type],
+      document_number: @user[:document_number],
+    )
+  end
+
+  def save_user_authorization(user)
+    user_authorization = UserAuthorization.create!(
+      email: @user[:email],
+      user_authorizable_type: user.class.name,
+      user_authorizable_id: user.id,
+      password: @user[:password],
+    )
+
+    if user_authorization.save
+      user_authorization.activate!
+      user_authorization
     else
       Educator.new(
         name: @user_params[:name],

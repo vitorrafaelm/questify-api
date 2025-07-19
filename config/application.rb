@@ -17,6 +17,9 @@ module QuestifyApi
     config.autoload_paths << Rails.root.join("exceptions")
     config.autoload_paths << Rails.root.join("lib")
 
+    config.hosts << "http://localhost:3000"
+    config.hosts << "http://127.0.0.1:3000"
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
