@@ -1,15 +1,20 @@
 class Api::V1::QuestionsController < Api::V1::BaseController
+  before_action :authenticate_user!
+
   # GET /api/v1/questions
   def index
+    page = params[:page] || 1
+    per_page = params[:per_page] || 10
+
     if current_user.user_authorizable.is_a?(Student)
-      # Alunos veem apenas questões públicas
-      @questions = Question.public_questions.active.includes(:themes, :question_alternatives)
+      @questions = Question.public_questions
     else
-      # Professores veem todas as questões
-      @questions = Question.all.active.includes(:themes, :question_alternatives)
+      @questions = Question.all
     end
 
-    render json: Questify::QuestionSerializer.new(@questions).serializable_hash, status: :ok
+    @questions = @questions.order(:title).limit(per_page).offset((page.to_i - 1) * per_page.to_i)
+
+    render json:  Questify::QuestionSerializer.new(@questions).sanitized_hash, status: :ok
   end
 
   # POST /api/v1/questions
@@ -21,8 +26,11 @@ class Api::V1::QuestionsController < Api::V1::BaseController
     end
 
     @question = Question.new(question_params)
-    # Associa a questão ao professor que está logado
     @question.educator = current_user.user_authorizable
+
+    if @question.question_type == 'descriptive'
+      @question.question_alternatives = []
+    end
 
     if @question.save
       render json: Questify::QuestionSerializer.new(@question).serializable_hash, status: :created

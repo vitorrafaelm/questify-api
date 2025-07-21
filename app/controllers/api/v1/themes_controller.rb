@@ -1,8 +1,29 @@
 class Api::V1::ThemesController < Api::V1::BaseController
+  before_action :authenticate_user!
+
+  # GET /api/v1/themes/:id
+  def show
+    @theme = Theme.find(params[:id])
+    render json: Questify::ThemeSerializer.new(@theme).sanitized_hash, status: :ok
+  end
+
   # GET /api/v1/themes
   def index
+    page = params[:page] || 1
+    per_page = params[:per_page] || 10
+
+    @themes = Theme.active
+                   .order(title: :asc)
+                   .page(page)
+                   .per(per_page)
+
+    render json: Questify::ThemeSerializer.new(@themes).sanitized_hash, status: :ok
+  end
+
+  # GET /api/v1/themes/all
+  def all_themes
     @themes = Theme.active.order(title: :asc)
-    render json: @themes, status: :ok
+    render json: Questify::ThemeSerializer.new(@themes).sanitized_hash, status: :ok
   end
 
   # POST /api/v1/themes
@@ -10,7 +31,7 @@ class Api::V1::ThemesController < Api::V1::BaseController
     @theme = Theme.new(theme_params)
 
     if @theme.save
-      render json: @theme, status: :created
+      render json: Questify::ThemeSerializer.new(@theme).sanitized_hash, status: :created
     else
       render json: { errors: @theme.errors.full_messages }, status: :unprocessable_entity
     end
@@ -20,6 +41,6 @@ class Api::V1::ThemesController < Api::V1::BaseController
 
   # Strong Parameters
   def theme_params
-    params.require(:theme).permit(:title, :description)
+    params.permit(:title, :description)
   end
 end

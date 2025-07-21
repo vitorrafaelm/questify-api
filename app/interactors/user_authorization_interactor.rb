@@ -9,14 +9,10 @@ class UserAuthorizationInteractor
     raise ExceptionHandler::UserNotActiveError.new unless user_authorization.state == "active"
 
     if user_authorization.valid_password?(password)
-      # Prepara a resposta para o utilizador
       response_hash = Questify::SessionSerializer.new(user_authorization).sanitized_hash
 
-      # Cria um payload simples para o token, apenas com o ID
-      payload = { user_id: user_authorization.id }
-      jwt_token = JsonWebToken.encode(payload)
+      jwt_token = JsonWebToken.encode(response_hash)
 
-      # Adiciona o token à resposta final
       response_hash[:access_token] = jwt_token
       response_hash
     else

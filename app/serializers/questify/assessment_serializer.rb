@@ -1,11 +1,14 @@
 class Questify::AssessmentSerializer
   include JSONAPI::Serializer
+  include SerializerHelper
 
-  attributes :title, :description, :created_at
+  attributes :id, :title, :description, :created_at
 
   attribute :type do |record|
     'assessment'
   end
 
-  has_many :questions, serializer: Questify::QuestionSerializer
+  attribute :questions do |record|
+    Questify::QuestionSerializer.new(record.reload.questions).sanitized_hash
+  end
 end

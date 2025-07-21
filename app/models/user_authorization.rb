@@ -50,7 +50,6 @@ class UserAuthorization < ApplicationRecord
   scope :for_educators, -> { where(user_authorizable_type: 'Educator') }
   scope :for_students, -> { where(user_authorizable_type: 'Student') }
 
-  
   def assign_default_permissions
     # Verifica que tipo de usuário está sendo criado (Educator ou Student)
     if user_authorizable.is_a?(Educator)
@@ -77,7 +76,7 @@ class UserAuthorization < ApplicationRecord
       UserPermission.grant_permission(self, permission_obj)
     end
   end
-  
+
   def has_permission?(identifier)
     # Procura nas permissões do utilizador se existe alguma que esteja ativa
     # e cujo objeto de permissão tenha o identificador.

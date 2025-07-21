@@ -21,6 +21,7 @@ Rails.application.routes.draw do
       get 'questions/create'
       get 'themes/index'
       get 'themes/create'
+      get 'themes/all', to: 'themes#all_themes'
       #routes
       resources :themes, only: [:index, :create]
       resources :questions, only: [:index, :create]
@@ -30,7 +31,7 @@ Rails.application.routes.draw do
           get :with_students
         end
       end
-      resources :assessments, only: [:create, :show] do
+      resources :assessments, only: [:index, :create, :show] do
         member do
           post :add_question
           post :assign_to_class_group

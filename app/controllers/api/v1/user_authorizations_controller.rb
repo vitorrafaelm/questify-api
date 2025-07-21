@@ -6,7 +6,7 @@ class Api::V1::UserAuthorizationsController < ApplicationController
     user_login_params = user_authorization_login_params.to_h.with_indifferent_access
     user  = @interactor.login(user_login_params)
 
-    render json: user, status: :created
+    render json: user, status: :ok
   end
 
   # Post /api/v1/user_authorizations

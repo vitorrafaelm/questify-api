@@ -1,5 +1,6 @@
 class Questify::AssessmentByStudentSerializer
   include JSONAPI::Serializer
+  include SerializerHelper
 
   has_many :assessment_answers, serializer: Questify::AssessmentAnswerSerializer
 
@@ -25,5 +26,5 @@ class Questify::AssessmentByStudentSerializer
       name: class_group.name
     }
   end
-  
+
 end

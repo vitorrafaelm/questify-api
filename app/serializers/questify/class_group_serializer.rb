@@ -1,5 +1,6 @@
 class Questify::ClassGroupSerializer
   include JSONAPI::Serializer
+  include SerializerHelper
 
   # CORREÇÃO: Removido o 'type' da lista de atributos
   attributes :name, :description, :class_identifier, :period, :created_at

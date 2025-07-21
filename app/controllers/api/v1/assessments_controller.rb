@@ -1,16 +1,46 @@
 class Api::V1::AssessmentsController < Api::V1::BaseController
+  before_action :authenticate_user!
   before_action :require_educator!
   before_action :set_assessment, only: [:show, :with_questions, :add_question, :assign_to_class_group]
 
+  # GET /api/v1/assessments
+  def index
+    page = params[:page] || 1
+    per_page = params[:per_page] || 10
+
+    @assessments = current_user.user_authorizable.assessments
+                              .order(created_at: :desc)
+                              .limit(per_page)
+                              .offset((page.to_i - 1) * per_page.to_i)
+
+    total_count = current_user.user_authorizable.assessments.count
+    total_pages = (total_count / per_page.to_f).ceil
+
+    render json: Questify::AssessmentSerializer.new(@assessments).sanitized_hash, status: :ok
+  end
+
   # POST /api/v1/assessments
   def create
-    @assessment = current_user.user_authorizable.assessments.new(assessment_params)
+    ActiveRecord::Base.transaction do
+      assessment = {
+        title: assessment_params[:title],
+        description: assessment_params[:description],
+      }
+      @assessment = current_user.user_authorizable.assessments.new(assessment)
 
-    if @assessment.save
-      render json: Questify::AssessmentSerializer.new(@assessment).serializable_hash, status: :created
-    else
-      render json: { errors: @assessment.errors.full_messages }, status: :unprocessable_entity
+      if @assessment.save
+        if assessment_params[:questions].present?
+          questions = Question.where(id: assessment_params[:questions])
+          @assessment.questions = questions
+        end
+
+        render json: Questify::AssessmentSerializer.new(@assessment).sanitized_hash, status: :created
+      else
+        render json: { errors: @assessment.errors.full_messages }, status: :unprocessable_entity
+      end
     end
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { errors: [e.message] }, status: :unprocessable_entity
   end
 
   # GET /api/v1/assessments/:id
@@ -39,7 +69,7 @@ end
   # POST /api/v1/assessments/:id/assign_to_class_group
   def assign_to_class_group
     class_group = ClassGroup.find(params[:class_group_id])
-    
+
     assignment = @assessment.assessment_to_class_groups.new(
       class_group: class_group,
       due_date: params[:due_date]
@@ -57,7 +87,7 @@ end
   private
 
   def assessment_params
-    params.require(:assessment).permit(:title, :description)
+    params.require(:assessment).permit(:title, :description, questions: [])
   end
 
   # ATUALIZADO COM DEPURAÇÃO E TRATAMENTO DE ERRO
