@@ -37,6 +37,26 @@ class Api::V1::ThemesController < Api::V1::BaseController
     end
   end
 
+  # PATCH/PUT /api/v1/themes/:id
+  def update
+    @theme = Theme.find(params[:id])
+    if @theme.update(theme_params)
+      render json: Questify::ThemeSerializer.new(@theme).sanitized_hash, status: :ok
+    else
+      render json: { errors: @theme.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  # DELETE /api/v1/themes/:id
+  def destroy
+    @theme = Theme.find(params[:id])
+    if @theme.destroy
+      head :no_content
+    else
+      render json: { errors: @theme.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   # Strong Parameters

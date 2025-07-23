@@ -11,4 +11,8 @@ class Questify::AssessmentSerializer
   attribute :questions do |record|
     Questify::QuestionSerializer.new(record.reload.questions).sanitized_hash
   end
+
+  attribute :students do |record|
+    Questify::StudentSerializer.new(record.reload.students).sanitized_hash
+  end
 end

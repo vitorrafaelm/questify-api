@@ -3,11 +3,11 @@ class AssessmentByStudent < ApplicationRecord
 
   # Associations
   belongs_to :student
-  belongs_to :assessment_to_class_group
+  belongs_to :assessment
   has_many :assessment_answers, dependent: :destroy
 
   # Validations
-  validates :student_id, uniqueness: { scope: :assessment_to_class_group_id, message: "student has already started this assessment" }
+  validates :student_id, uniqueness: { scope: :assessment_id, message: "student has already started this assessment" }
   validates :status, inclusion: { in: %w[not_started in_progress submitted graded] }
 
   # Scopes

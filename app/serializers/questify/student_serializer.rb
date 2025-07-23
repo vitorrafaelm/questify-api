@@ -9,4 +9,8 @@ class Questify::StudentSerializer
   attribute :type do |record|
     'student'
   end
+
+  attribute :email do |student|
+    student.user_authorization.email
+  end
 end

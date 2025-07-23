@@ -23,8 +23,8 @@ Rails.application.routes.draw do
       get 'themes/create'
       get 'themes/all', to: 'themes#all_themes'
       #routes
-      resources :themes, only: [:index, :create]
-      resources :questions, only: [:index, :create]
+      resources :themes, only: [:index, :create, :destroy, :update]
+      resources :questions, only: [:index, :create, :show, :update, :destroy]
       resources :class_groups, only: [:index, :create, :show] do
         member do
           post :add_student
@@ -35,6 +35,9 @@ Rails.application.routes.draw do
         member do
           post :add_question
           post :assign_to_class_group
+          post :add_students
+          delete 'remove_student/:student_id', action: :remove_student
+          delete 'remove_question/:question_id', action: :remove_question
           get  :with_questions
         end
       end
@@ -48,6 +51,7 @@ Rails.application.routes.draw do
           patch :grade
         end
       end
+      resources :students, only: [:index]
       # User Authorization routes
       resources :user_authorizations, only: [:create] do
         collection do

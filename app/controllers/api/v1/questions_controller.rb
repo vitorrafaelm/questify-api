@@ -39,6 +39,36 @@ class Api::V1::QuestionsController < Api::V1::BaseController
     end
   end
 
+  # GET /api/v1/questions/:id
+  def show
+    if current_user.user_authorizable.is_a?(Student)
+      question = Question.public_questions.find_by(id: params[:id])
+    else
+      question = Question.where(educator: current_user.user_authorizable).find_by(id: params[:id])
+    end
+
+    if question
+      render json: Questify::QuestionSerializer.new(question).sanitized_hash, status: :ok
+    else
+      render json: { error: 'Questão não encontrada ou não autorizada' }, status: :not_found
+    end
+  end
+
+  # PATCH/PUT /api/v1/questions/:id
+  def update
+    @question = Question.find_by(id: params[:id])
+    unless @question && @question.educator == current_user.user_authorizable
+      render json: { error: 'Questão não encontrada ou não autorizada' }, status: :not_found
+      return
+    end
+
+    if @question.update(question_params)
+      render json: Questify::QuestionSerializer.new(@question).sanitized_hash, status: :ok
+    else
+      render json: { errors: @question.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def question_params

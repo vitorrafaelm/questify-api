@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_07_09_174447) do
+ActiveRecord::Schema[7.0].define(version: 2025_07_22_121503) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -30,15 +30,15 @@ ActiveRecord::Schema[7.0].define(version: 2025_07_09_174447) do
 
   create_table "assessment_by_students", force: :cascade do |t|
     t.bigint "student_id", null: false
-    t.bigint "assessment_to_class_group_id", null: false
     t.float "score"
     t.string "status", default: "not_started", null: false
     t.datetime "discarded_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["assessment_to_class_group_id"], name: "index_assessment_by_students_on_assessment_to_class_group_id"
+    t.bigint "assessment_id", null: false
+    t.index ["assessment_id"], name: "index_assessment_by_students_on_assessment_id"
     t.index ["discarded_at"], name: "index_assessment_by_students_on_discarded_at"
-    t.index ["student_id", "assessment_to_class_group_id"], name: "idx_on_student_and_assessment_to_class_group", unique: true
+    t.index ["student_id", "assessment_id"], name: "idx_on_student_and_assessment", unique: true
     t.index ["student_id"], name: "index_assessment_by_students_on_student_id"
   end
 
@@ -202,7 +202,7 @@ ActiveRecord::Schema[7.0].define(version: 2025_07_09_174447) do
   add_foreign_key "assessment_answers", "assessment_by_students"
   add_foreign_key "assessment_answers", "question_alternatives"
   add_foreign_key "assessment_answers", "questions"
-  add_foreign_key "assessment_by_students", "assessment_to_class_groups"
+  add_foreign_key "assessment_by_students", "assessments"
   add_foreign_key "assessment_by_students", "students"
   add_foreign_key "assessment_to_class_groups", "assessments"
   add_foreign_key "assessment_to_class_groups", "class_groups"
