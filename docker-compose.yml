@@ -30,9 +30,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: bash -c "bundle exec rake db:prepare && bundle exec rails s -p 3000 -b '0.0.0.0'"
     ports:
       - "51704:3000"
+    command: bash -c "rm -f tmp/pids/server.pid && bundle install && bundle exec rake db:prepare && bundle exec rails s -p 3000 -b '0.0.0.0'"
     volumes:
       - .:/app
     env_file:

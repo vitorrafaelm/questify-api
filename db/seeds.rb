@@ -1,12 +1,9 @@
 permission_data = [
-  { name: 'Criar Questões', identifier: 'create-questions', object_type: 'question' },
-  { name: 'Gerenciar Temas', identifier: 'create-themes', object_type: 'theme' }, 
-  { name: 'Criar Avaliações', identifier: 'create-assessments', object_type: 'questionnaire' }, 
-  { name: 'Criar Turmas', identifier: 'create-classes', object_type: 'class_entity' }, 
-  { name: 'Gerenciar Minhas Turmas', identifier: 'manage-classes', object_type: 'class_entity' },
-  { name: 'Visualizar Questões Privadas', identifier: 'view-private-questions', object_type: 'question' },
-  { name: 'Listar Avaliações Disponíveis', identifier: 'list-assessments', object_type: 'questionnaire' },
-  { name: 'Visualizar Questões Públicas', identifier: 'list-public-questions', object_type: 'question' },
+  { name: 'Criar temas de questões', identifier: 'create-questions-themes', object_type: 'tests-and-questions' },
+  { name: 'Criar questões', identifier: 'create-questions', object_type: 'tests-and-questions' }, 
+  { name: 'Criar testes', identifier: 'create-assessments', object_type: 'tests-and-questions' }, 
+  { name: 'Ver questões', identifier: 'view-questions-student', object_type: 'tests-and-questions' }, 
+  { name: 'Ver testes', identifier: 'view-test-student', object_type: 'tests-and-questions' },
 ]
   permission_data.each do |data|
   PermissionObject.find_or_create_by!(identifier: data[:identifier]) do |permission|

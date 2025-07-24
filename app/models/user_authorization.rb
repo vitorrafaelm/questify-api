@@ -54,17 +54,14 @@ class UserAuthorization < ApplicationRecord
     # Verifica que tipo de usuário está sendo criado (Educator ou Student)
     if user_authorizable.is_a?(Educator)
       permission_identifiers = [
+        'create-questions-themes',
         'create-questions',
-        'create-themes',
         'create-assessments',
-        'create-classes',
-        'manage-classes',
-        'view-private-questions'
       ]
     elsif user_authorizable.is_a?(Student)
       permission_identifiers = [
-        'list-assessments',
-        'list-public-questions'
+        'view-questions-student',
+        'view-test-student'
       ]
     else
       return # Não faz nada se não for um tipo conhecido

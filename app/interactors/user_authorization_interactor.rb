@@ -65,23 +65,23 @@ class UserAuthorizationInteractor
       state: 'active',
     )
 
-    # Adiciona permissões conforme o tipo de usuário
-    permission_objects = PermissionObject.where(discarded_at: nil)
-    if user.is_a?(Student)
-      # Permissões que possuem 'view' no identifier
-      user_authorization.user_permissions.destroy_all
-      view_permissions = permission_objects.where("identifier LIKE ?", "%view%")
-      view_permissions.each do |perm|
-        UserPermission.create!(user_authorization: user_authorization, permission_object: perm)
-      end
-    else
-      # Permissões que NÃO possuem 'view' no identifier
-      user_authorization.user_permissions.destroy_all
-      non_view_permissions = permission_objects.where.not("identifier LIKE ?", "%view%")
-      non_view_permissions.each do |perm|
-        UserPermission.create!(user_authorization: user_authorization, permission_object: perm)
-      end
-    end
+    # # Adiciona permissões conforme o tipo de usuário
+    # permission_objects = PermissionObject.where(discarded_at: nil)
+    # if user.is_a?(Student)
+    #   # Permissões que possuem 'view' no identifier
+    #   user_authorization.user_permissions.destroy_all
+    #   view_permissions = permission_objects.where("identifier LIKE ?", "%view%")
+    #   view_permissions.each do |perm|
+    #     UserPermission.create!(user_authorization: user_authorization, permission_object: perm)
+    #   end
+    # else
+    #   # Permissões que NÃO possuem 'view' no identifier
+    #   user_authorization.user_permissions.destroy_all
+    #   non_view_permissions = permission_objects.where.not("identifier LIKE ?", "%view%")
+    #   non_view_permissions.each do |perm|
+    #     UserPermission.create!(user_authorization: user_authorization, permission_object: perm)
+    #   end
+    # end
 
     if user_authorization.save
       user_authorization
