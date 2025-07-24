@@ -1,19 +1,19 @@
 class Api::V1::AssessmentsController < Api::V1::BaseController
   before_action :authenticate_user!
   before_action :require_educator_for_create!, only: [:create, :add_question, :assign_to_class_group]
-  before_action :set_assessment, only: [:show, :with_questions, :add_question, :add_students, :assign_to_class_group, :remove_student, :remove_question]
+  before_action :set_assessment, only: [:show, :with_questions, :add_question, :add_students, :assign_to_class_group, :remove_student, :remove_question, :destroy]
 
   # GET /api/v1/assessments
   def index
     page = params[:page] || 1
     per_page = params[:per_page] || 10
 
-    @assessments = current_user.user_authorizable.assessments
+    @assessments = current_user.user_authorizable.assessments.kept
                               .order(created_at: :desc)
                               .limit(per_page)
                               .offset((page.to_i - 1) * per_page.to_i)
 
-    total_count = current_user.user_authorizable.assessments.count
+    total_count = current_user.user_authorizable.assessments.kept.count
     total_pages = (total_count / per_page.to_f).ceil
 
     render json: Questify::AssessmentSerializer.new(@assessments).sanitized_hash, status: :ok
@@ -46,7 +46,7 @@ class Api::V1::AssessmentsController < Api::V1::BaseController
   # GET /api/v1/assessments/:id
   # Mostra os detalhes de uma avaliação, SEM as questões.
   def show
-    render json: Questify::AssessmentSerializer.new(@assessment).serializable_hash, status: :ok
+    render json: Questify::AssessmentSerializer.new(@assessment).sanitized_hash, status: :ok
   end
 
   # GET /api/v1/assessments/:id/with_questions
@@ -117,6 +117,21 @@ class Api::V1::AssessmentsController < Api::V1::BaseController
     end
   end
 
+  # DELETE /api/v1/assessments/:id
+  def destroy
+    @assessment = current_user.user_authorizable.assessments.find_by(id: params[:id])
+    unless @assessment
+      render json: { error: 'Avaliação não encontrada ou não autorizada' }, status: :not_found
+      return
+    end
+
+    if @assessment.discard!
+      head :no_content
+    else
+      render json: { errors: @assessment.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def assessment_params
@@ -126,18 +141,17 @@ class Api::V1::AssessmentsController < Api::V1::BaseController
   # ATUALIZADO COM DEPURAÇÃO E TRATAMENTO DE ERRO
   def set_assessment
     if current_user.user_authorizable.is_a?(Educator)
-      # Educators can only access their own assessments
-      @assessment = current_user.user_authorizable.assessments.includes(
+      # Educators can only access their own assessments that are not discarded
+      @assessment = current_user.user_authorizable.assessments.kept.includes(
         questions: :question_alternatives,
         assessment_by_students: :student
       ).find(params[:id])
     else
-      # Students can access assessments assigned to their class groups
-      student_class_group_ids = current_user.user_authorizable.student_in_class_groups.pluck(:class_group_id)
-      @assessment = Assessment.joins(:assessment_to_class_groups)
-                             .where(assessment_to_class_groups: { class_group_id: student_class_group_ids })
-                             .includes(questions: :question_alternatives)
-                             .find(params[:id])
+      # Students can access assessments assigned to them via assessment_by_students that are not discarded
+      @assessment = current_user.user_authorizable.assessments.kept.includes(
+        questions: :question_alternatives,
+        assessment_by_students: :student
+      ).find(params[:id])
     end
 
     # Se a avaliação não for encontrada, retorna um erro 404

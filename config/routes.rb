@@ -31,7 +31,7 @@ Rails.application.routes.draw do
           get :with_students
         end
       end
-      resources :assessments, only: [:index, :create, :show] do
+      resources :assessments, only: [:index, :create, :show, :destroy] do
         member do
           post :add_question
           post :assign_to_class_group

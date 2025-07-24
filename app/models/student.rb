@@ -27,6 +27,7 @@ class Student < ApplicationRecord
   has_many :student_in_class_groups, dependent: :destroy
   has_many :class_groups, through: :student_in_class_groups
   has_many :assessment_by_students, dependent: :destroy
+  has_many :assessments, through: :assessment_by_students
 
   private
 
@@ -37,6 +38,4 @@ class Student < ApplicationRecord
   def normalize_username
     self.username = username&.downcase&.strip
   end
-
- 
 end

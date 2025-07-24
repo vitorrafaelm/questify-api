@@ -9,7 +9,7 @@ class Api::V1::QuestionsController < Api::V1::BaseController
     if current_user.user_authorizable.is_a?(Student)
       @questions = Question.public_questions
     else
-      @questions = Question.all
+      @questions = Question.where(educator: current_user.user_authorizable)
     end
 
     @questions = @questions.order(:title).limit(per_page).offset((page.to_i - 1) * per_page.to_i)
@@ -19,12 +19,6 @@ class Api::V1::QuestionsController < Api::V1::BaseController
 
   # POST /api/v1/questions
   def create
-    # Verifica se o usuário tem permissão para criar questões
-    unless current_user.has_permission?('create-questions')
-      render json: { error: 'Acesso não autorizado' }, status: :forbidden
-      return
-    end
-
     @question = Question.new(question_params)
     @question.educator = current_user.user_authorizable
 
@@ -64,6 +58,21 @@ class Api::V1::QuestionsController < Api::V1::BaseController
 
     if @question.update(question_params)
       render json: Questify::QuestionSerializer.new(@question).sanitized_hash, status: :ok
+    else
+      render json: { errors: @question.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  # DELETE /api/v1/questions/:id
+  def destroy
+    @question = Question.find_by(id: params[:id])
+    unless @question && @question.educator == current_user.user_authorizable
+      render json: { error: 'Questão não encontrada ou não autorizada' }, status: :not_found
+      return
+    end
+
+    if @question.destroy
+      head :no_content
     else
       render json: { errors: @question.errors.full_messages }, status: :unprocessable_entity
     end
